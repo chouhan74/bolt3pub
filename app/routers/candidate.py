@@ -228,26 +228,52 @@ async def render_assessment(request: Request, current_candidate: AssessmentCandi
     )
 
 
+# @router.get("/assessment/{assessment_candidate_id}")
+# async def assessment_interface_with_path(
+#     request: Request,
+#     assessment_candidate_id: int = Path(..., description="Assessment candidate ID"),
+#     db: Session = Depends(get_db)
+# ):
+#     """Assessment interface accessed via URL path parameter"""
+#     # Get candidate by path parameter
+#     current_candidate = get_candidate_by_id(assessment_candidate_id, db)
+    
+#     # Verify authentication via cookies
+#     try:
+#         cookie_candidate = get_current_candidate_from_cookie(db=db)
+#         # Ensure path param matches authenticated candidate
+#         if current_candidate.id != cookie_candidate.id:
+#             raise HTTPException(status_code=403, detail="Access denied")
+#     except HTTPException:
+#         # If no valid cookie authentication, still allow access via path
+#         # You might want to add additional security checks here
+#         pass
+
+#     return await render_assessment(request, current_candidate, db)
+
+
+# @router.get("/assessment")
+# async def assessment_interface_no_path(
+#     request: Request,
+#     current_candidate: AssessmentCandidate = Depends(get_current_candidate_from_cookie),
+#     db: Session = Depends(get_db),
+# ):
+#     """Assessment interface accessed via cookie authentication only"""
+#     return await render_assessment(request, current_candidate, db)
 @router.get("/assessment/{assessment_candidate_id}")
 async def assessment_interface_with_path(
     request: Request,
     assessment_candidate_id: int = Path(..., description="Assessment candidate ID"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    cookie_candidate: AssessmentCandidate = Depends(get_current_candidate_from_cookie),  # ✅ FIXED
 ):
     """Assessment interface accessed via URL path parameter"""
     # Get candidate by path parameter
     current_candidate = get_candidate_by_id(assessment_candidate_id, db)
     
-    # Verify authentication via cookies
-    try:
-        cookie_candidate = get_current_candidate_from_cookie(db=db)
-        # Ensure path param matches authenticated candidate
-        if current_candidate.id != cookie_candidate.id:
-            raise HTTPException(status_code=403, detail="Access denied")
-    except HTTPException:
-        # If no valid cookie authentication, still allow access via path
-        # You might want to add additional security checks here
-        pass
+    # Ensure path param matches authenticated candidate
+    if cookie_candidate and current_candidate.id != cookie_candidate.id:
+        raise HTTPException(status_code=403, detail="Access denied")
 
     return await render_assessment(request, current_candidate, db)
 
@@ -260,7 +286,6 @@ async def assessment_interface_no_path(
 ):
     """Assessment interface accessed via cookie authentication only"""
     return await render_assessment(request, current_candidate, db)
-
 
 @router.get("/question/{question_id}")
 async def question_interface(
