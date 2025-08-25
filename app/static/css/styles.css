@@ -1,0 +1,136 @@
+/* Custom styles for Mercer HR platform */
+
+/* Loading spinner */
+.spinner {
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Monaco Editor adjustments */
+.monaco-editor {
+    border-radius: 0.5rem;
+}
+
+/* Console styling */
+.console-output {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+/* Verdict badges */
+.verdict-ok {
+    @apply bg-green-100 text-green-800;
+}
+
+.verdict-wa {
+    @apply bg-red-100 text-red-800;
+}
+
+.verdict-tle {
+    @apply bg-yellow-100 text-yellow-800;
+}
+
+.verdict-rte {
+    @apply bg-red-100 text-red-800;
+}
+
+.verdict-ce {
+    @apply bg-red-100 text-red-800;
+}
+
+/* Assessment progress */
+.progress-ring {
+    transform: rotate(-90deg);
+}
+
+.progress-ring-circle {
+    stroke-dasharray: 251.2;
+    stroke-dashoffset: 251.2;
+    transition: stroke-dashoffset 0.5s ease-in-out;
+}
+
+/* Proctoring alerts */
+.proctoring-warning {
+    @apply fixed top-4 right-4 bg-yellow-500 text-white p-4 rounded-lg shadow-lg z-50;
+    animation: slideIn 0.3s ease-out;
+}
+
+.proctoring-violation {
+    @apply fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+    .split-view {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+    }
+    
+    .assessment-sidebar {
+        display: none;
+    }
+}
+
+/* Dark mode for code sections */
+.code-dark {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+}
+
+/* Syntax highlighting */
+.hljs-keyword {
+    color: #569cd6;
+}
+
+.hljs-string {
+    color: #ce9178;
+}
+
+.hljs-number {
+    color: #b5cea8;
+}
+
+.hljs-comment {
+    color: #6a9955;
+    font-style: italic;
+}
+
+/* Custom scrollbars */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}

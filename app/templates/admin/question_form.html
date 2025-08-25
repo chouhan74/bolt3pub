@@ -1,0 +1,160 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if question %}Edit{% else %}Add{% endif %} Question - Mercer HR Admin{% endblock %}
+
+{% block admin_content %}
+<div class="px-4 py-6 sm:px-0">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">
+            {% if question %}Edit Question{% else %}Add Question{% endif %}
+        </h1>
+        <p class="mt-1 text-sm text-gray-600">
+            Create coding problems and MCQ questions for assessments
+        </p>
+    </div>
+
+    <form action="{% if question %}/admin/questions/{{ question.id }}/edit{% else %}/admin/questions/add{% endif %}" method="POST" class="space-y-6" x-data="questionForm()">
+        <div class="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
+            <div class="grid grid-cols-6 gap-6">
+                <div class="col-span-6">
+                    <label for="title" class="block text-sm font-medium text-gray-700">Question Title</label>
+                    <input 
+                        type="text" 
+                        name="title" 
+                        id="title" 
+                        value="{{ question.title if question else '' }}"
+                        required
+                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                    >
+                </div>
+
+                <div class="col-span-6 sm:col-span-2">
+                    <label for="question_type" class="block text-sm font-medium text-gray-700">Question Type</label>
+                    <select 
+                        name="question_type" 
+                        id="question_type"
+                        x-model="questionType"
+                        required
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                    >
+                        <option value="coding" {% if question and question.question_type.value == 'coding' %}selected{% endif %}>Coding Problem</option>
+                        <option value="mcq" {% if question and question.question_type.value == 'mcq' %}selected{% endif %}>Multiple Choice</option>
+                    </select>
+                </div>
+
+                <div class="col-span-6 sm:col-span-2">
+                    <label for="difficulty" class="block text-sm font-medium text-gray-700">Difficulty</label>
+                    <select 
+                        name="difficulty" 
+                        id="difficulty"
+                        required
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                    >
+                        <option value="easy" {% if question and question.difficulty.value == 'easy' %}selected{% endif %}>Easy</option>
+                        <option value="medium" {% if question and question.difficulty.value == 'medium' %}selected{% endif %}>Medium</option>
+                        <option value="hard" {% if question and question.difficulty.value == 'hard' %}selected{% endif %}>Hard</option>
+                    </select>
+                </div>
+
+                <div class="col-span-6 sm:col-span-2">
+                    <label for="max_score" class="block text-sm font-medium text-gray-700">Max Score</label>
+                    <input 
+                        type="number" 
+                        name="max_score" 
+                        id="max_score" 
+                        min="1"
+                        step="0.1"
+                        value="{{ question.max_score if question else '100' }}"
+                        required
+                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                    >
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                    <label for="time_limit_minutes" class="block text-sm font-medium text-gray-700">Time Limit (minutes)</label>
+                    <input 
+                        type="number" 
+                        name="time_limit_minutes" 
+                        id="time_limit_minutes" 
+                        min="1"
+                        value="{{ question.time_limit_minutes if question else '30' }}"
+                        required
+                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                    >
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                    <label for="tags" class="block text-sm font-medium text-gray-700">Tags</label>
+                    <input 
+                        type="text" 
+                        name="tags" 
+                        id="tags" 
+                        value="{{ question.tags if question else '' }}"
+                        placeholder="e.g., arrays, sorting, dynamic programming"
+                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                    >
+                    <p class="mt-1 text-sm text-gray-500">Separate multiple tags with commas</p>
+                </div>
+
+                <div class="col-span-6">
+                    <label for="description" class="block text-sm font-medium text-gray-700">Problem Description</label>
+                    <textarea 
+                        name="description" 
+                        id="description" 
+                        rows="8"
+                        required
+                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                    >{{ question.description if question else '' }}</textarea>
+                    <p class="mt-2 text-sm text-gray-500">
+                        Provide a clear problem statement with examples, constraints, and expected input/output format.
+                    </p>
+                </div>
+
+                <!-- Coding-specific fields -->
+                <div class="col-span-6" x-show="questionType === 'coding'">
+                    <label for="template_code" class="block text-sm font-medium text-gray-700">Template Code (Optional)</label>
+                    <textarea 
+                        name="template_code" 
+                        id="template_code" 
+                        rows="6"
+                        placeholder="def solution():\n    # Your code here\n    pass"
+                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md font-mono"
+                    >{{ question.template_code if question else '' }}</textarea>
+                    <p class="mt-2 text-sm text-gray-500">
+                        Starter code template for candidates (optional).
+                    </p>
+                </div>
+
+                <div class="col-span-6" x-show="questionType === 'coding'">
+                    <label for="allowed_languages" class="block text-sm font-medium text-gray-700">Allowed Languages</label>
+                    <input 
+                        type="text" 
+                        name="allowed_languages" 
+                        id="allowed_languages" 
+                        value="{{ question.allowed_languages if question else 'python,cpp,java' }}"
+                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                    >
+                    <p class="mt-1 text-sm text-gray-500">Comma-separated list: python, cpp, c, java</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+            <a href="/admin/questions" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Cancel
+            </a>
+            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                {% if question %}Update{% else %}Create{% endif %} Question
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function questionForm() {
+    return {
+        questionType: '{{ question.question_type.value if question else "coding" }}'
+    }
+}
+</script>
+{% endblock %}

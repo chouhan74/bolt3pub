@@ -1,0 +1,199 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if assessment %}Edit{% else %}Create{% endif %} Assessment - Mercer HR Admin{% endblock %}
+
+{% block admin_content %}
+<div class="px-4 py-6 sm:px-0">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">
+            {% if assessment %}Edit Assessment{% else %}Create Assessment{% endif %}
+        </h1>
+        <p class="mt-1 text-sm text-gray-600">
+            Set up a comprehensive coding assessment with multiple questions
+        </p>
+    </div>
+
+    <form action="{% if assessment %}/admin/assessments/{{ assessment.id }}/edit{% else %}/admin/assessments/add{% endif %}" method="POST" class="space-y-6">
+        <!-- Basic Information -->
+        <div class="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+            
+            <div class="grid grid-cols-6 gap-6">
+                <div class="col-span-6">
+                    <label for="title" class="block text-sm font-medium text-gray-700">Assessment Title</label>
+                    <input 
+                        type="text" 
+                        name="title" 
+                        id="title" 
+                        value="{{ assessment.title if assessment else '' }}"
+                        required
+                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                    >
+                </div>
+
+                <div class="col-span-6">
+                    <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea 
+                        name="description" 
+                        id="description" 
+                        rows="3"
+                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                    >{{ assessment.description if assessment else '' }}</textarea>
+                </div>
+
+                <div class="col-span-6">
+                    <label for="instructions" class="block text-sm font-medium text-gray-700">Instructions for Candidates</label>
+                    <textarea 
+                        name="instructions" 
+                        id="instructions" 
+                        rows="4"
+                        placeholder="Provide clear instructions for candidates taking this assessment..."
+                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                    >{{ assessment.instructions if assessment else '' }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assessment Configuration -->
+        <div class="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Configuration</h3>
+            
+            <div class="grid grid-cols-6 gap-6">
+                <div class="col-span-6 sm:col-span-2">
+                    <label for="total_time_minutes" class="block text-sm font-medium text-gray-700">Total Time (minutes)</label>
+                    <input 
+                        type="number" 
+                        name="total_time_minutes" 
+                        id="total_time_minutes" 
+                        min="30"
+                        value="{{ assessment.total_time_minutes if assessment else '120' }}"
+                        required
+                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                    >
+                </div>
+
+                <div class="col-span-6 sm:col-span-2">
+                    <label for="max_score" class="block text-sm font-medium text-gray-700">Maximum Score</label>
+                    <input 
+                        type="number" 
+                        name="max_score" 
+                        id="max_score" 
+                        min="1"
+                        step="0.1"
+                        value="{{ assessment.max_score if assessment else '100' }}"
+                        required
+                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                    >
+                </div>
+
+                <div class="col-span-6 sm:col-span-2">
+                    <label for="passing_score" class="block text-sm font-medium text-gray-700">Passing Score (%)</label>
+                    <input 
+                        type="number" 
+                        name="passing_score" 
+                        id="passing_score" 
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value="{{ assessment.passing_score if assessment else '60' }}"
+                        required
+                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                    >
+                </div>
+
+                <div class="col-span-6">
+                    <h4 class="text-sm font-medium text-gray-900 mb-3">Proctoring Settings</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center">
+                            <input 
+                                id="allow_copy_paste" 
+                                name="allow_copy_paste" 
+                                type="checkbox"
+                                {% if assessment and assessment.allow_copy_paste %}checked{% endif %}
+                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            >
+                            <label for="allow_copy_paste" class="ml-2 text-sm text-gray-700">
+                                Allow copy and paste
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            <input 
+                                id="allow_tab_switching" 
+                                name="allow_tab_switching" 
+                                type="checkbox"
+                                {% if assessment and assessment.allow_tab_switching %}checked{% endif %}
+                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            >
+                            <label for="allow_tab_switching" class="ml-2 text-sm text-gray-700">
+                                Allow tab switching
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question Selection -->
+        <div class="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Questions</h3>
+            
+            {% if questions %}
+            <div class="space-y-3">
+                <p class="text-sm text-gray-600 mb-4">Select questions to include in this assessment:</p>
+                
+                {% for question in questions %}
+                <div class="flex items-center">
+                    <input 
+                        id="question_{{ question.id }}" 
+                        name="question_ids" 
+                        value="{{ question.id }}"
+                        type="checkbox"
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    >
+                    <label for="question_{{ question.id }}" class="ml-3 flex-1">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-sm font-medium text-gray-900">{{ question.title }}</span>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                        {% if question.question_type.value == 'coding' %}
+                                            bg-blue-100 text-blue-800
+                                        {% else %}
+                                            bg-green-100 text-green-800
+                                        {% endif %}
+                                    ">
+                                        {{ question.question_type.value.title() }}
+                                    </span>
+                                    <span class="ml-2">{{ question.difficulty.value.title() }}</span>
+                                    <span class="ml-2">{{ question.max_score }} pts</span>
+                                    <span class="ml-2">{{ question.time_limit_minutes }} min</span>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-6">
+                <i class="fas fa-question-circle text-3xl text-gray-400 mb-2"></i>
+                <p class="text-sm text-gray-500">No questions available. Create questions first.</p>
+                <a href="/admin/questions/add" class="mt-2 inline-flex items-center text-blue-600 hover:text-blue-800">
+                    <i class="fas fa-plus mr-1"></i>
+                    Create Question
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="flex justify-end space-x-3">
+            <a href="/admin/assessments" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Cancel
+            </a>
+            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                {% if assessment %}Update{% else %}Create{% endif %} Assessment
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

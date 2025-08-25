@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Assessment Results{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-green-600 to-blue-700">
+    <div class="max-w-4xl mx-auto px-4 py-12">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-white/10 mb-4">
+                <i class="fas fa-trophy text-3xl text-white"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">Assessment Complete!</h1>
+            <p class="text-green-100">{{ assessment_candidate.assessment.title }}</p>
+        </div>
+
+        <!-- Results Summary -->
+        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-8 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                <div>
+                    <div class="text-3xl font-bold text-white mb-2">
+                        {{ "%.1f"|format(assessment_candidate.total_score or 0) }}
+                    </div>
+                    <div class="text-green-100">Total Score</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold text-white mb-2">
+                        {{ "%.1f"|format(assessment_candidate.percentage_score or 0) }}%
+                    </div>
+                    <div class="text-green-100">Percentage</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold text-white mb-2">
+                        {% if assessment_candidate.percentage_score and assessment_candidate.percentage_score >= assessment_candidate.assessment.passing_score %}
+                            <i class="fas fa-check-circle text-green-300"></i>
+                        {% else %}
+                            <i class="fas fa-times-circle text-red-300"></i>
+                        {% endif %}
+                    </div>
+                    <div class="text-green-100">
+                        {% if assessment_candidate.percentage_score and assessment_candidate.percentage_score >= assessment_candidate.assessment.passing_score %}
+                            PASSED
+                        {% else %}
+                            FAILED
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question-wise Results -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="px-6 py-4 bg-gray-50 border-b">
+                <h2 class="text-lg font-semibold text-gray-900">Question-wise Performance</h2>
+            </div>
+            
+            <div class="divide-y divide-gray-200">
+                {% for submission in submissions %}
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900">
+                                {% for aq in assessment_candidate.assessment.assessment_questions %}
+                                    {% if aq.question_id == submission.question_id %}
+                                        {{ aq.question.title }}
+                                    {% endif %}
+                                {% endfor %}
+                            </h3>
+                            <p class="text-sm text-gray-500">{{ submission.language.upper() }}</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-semibold text-gray-900">
+                                {{ "%.1f"|format(submission.total_score) }}
+                                {% for aq in assessment_candidate.assessment.assessment_questions %}
+                                    {% if aq.question_id == submission.question_id %}
+                                        /{{ aq.question.max_score }}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div class="text-sm">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                                    {% if submission.overall_verdict and submission.overall_verdict.value == 'OK' %}
+                                        bg-green-100 text-green-800
+                                    {% elif submission.overall_verdict and submission.overall_verdict.value == 'WA' %}
+                                        bg-yellow-100 text-yellow-800
+                                    {% elif submission.overall_verdict %}
+                                        bg-red-100 text-red-800
+                                    {% else %}
+                                        bg-gray-100 text-gray-800
+                                    {% endif %}
+                                ">
+                                    {{ submission.overall_verdict.value if submission.overall_verdict else 'PENDING' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if submission.results %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {% for result in submission.results %}
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-gray-700">Test Case {{ loop.index }}</span>
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                                    {% if result.verdict.value == 'OK' %}
+                                        bg-green-100 text-green-800
+                                    {% elif result.verdict.value == 'WA' %}
+                                        bg-yellow-100 text-yellow-800
+                                    {% else %}
+                                        bg-red-100 text-red-800
+                                    {% endif %}
+                                ">
+                                    {{ result.verdict.value }}
+                                </span>
+                            </div>
+                            <div class="mt-1 text-xs text-gray-500">
+                                {{ result.execution_time_ms }}ms | {{ result.memory_used_kb }}KB
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-8">
+            <p class="text-green-100">Thank you for taking the assessment!</p>
+            <p class="text-sm text-green-200 mt-2">Results have been recorded and will be reviewed by the assessment team.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

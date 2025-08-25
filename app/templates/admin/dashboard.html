@@ -1,0 +1,202 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dashboard - Mercer HR Admin{% endblock %}
+
+{% block admin_content %}
+<div class="px-4 py-6 sm:px-0">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <p class="mt-1 text-sm text-gray-600">
+            Overview of your assessment platform
+        </p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-users text-2xl text-blue-600"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                Total Candidates
+                            </dt>
+                            <dd class="text-lg font-medium text-gray-900">
+                                {{ total_candidates }}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-question-circle text-2xl text-green-600"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                Questions
+                            </dt>
+                            <dd class="text-lg font-medium text-gray-900">
+                                {{ total_questions }}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-clipboard-list text-2xl text-purple-600"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                Total Assessments
+                            </dt>
+                            <dd class="text-lg font-medium text-gray-900">
+                                {{ total_assessments }}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-play-circle text-2xl text-red-600"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">
+                                Active Assessments
+                            </dt>
+                            <dd class="text-lg font-medium text-gray-900">
+                                {{ active_assessments }}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                Recent Submissions
+            </h3>
+            
+            {% if recent_submissions %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Candidate
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Language
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Score
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Submitted
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for submission in recent_submissions %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ submission.candidate.name }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    {{ submission.language.upper() }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                                    {% if submission.overall_verdict and submission.overall_verdict.value == 'OK' %}
+                                        bg-green-100 text-green-800
+                                    {% elif submission.overall_verdict and submission.overall_verdict.value == 'WA' %}
+                                        bg-yellow-100 text-yellow-800
+                                    {% elif submission.overall_verdict and submission.overall_verdict.value in ['TLE', 'MLE', 'RTE'] %}
+                                        bg-red-100 text-red-800
+                                    {% else %}
+                                        bg-gray-100 text-gray-800
+                                    {% endif %}
+                                ">
+                                    {{ submission.overall_verdict.value if submission.overall_verdict else submission.status.value }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ "%.1f"|format(submission.total_score) }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ submission.submitted_at.strftime('%Y-%m-%d %H:%M') }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-center py-8">No recent submissions</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-3">
+        <a href="/admin/candidates/add" class="bg-blue-600 hover:bg-blue-700 text-white p-6 rounded-lg shadow transition-colors">
+            <div class="flex items-center">
+                <i class="fas fa-user-plus text-2xl mr-4"></i>
+                <div>
+                    <h3 class="text-lg font-semibold">Add Candidate</h3>
+                    <p class="text-blue-100">Register a new candidate</p>
+                </div>
+            </div>
+        </a>
+
+        <a href="/admin/questions/add" class="bg-green-600 hover:bg-green-700 text-white p-6 rounded-lg shadow transition-colors">
+            <div class="flex items-center">
+                <i class="fas fa-plus-circle text-2xl mr-4"></i>
+                <div>
+                    <h3 class="text-lg font-semibold">Add Question</h3>
+                    <p class="text-green-100">Create a new question</p>
+                </div>
+            </div>
+        </a>
+
+        <a href="/admin/assessments/add" class="bg-purple-600 hover:bg-purple-700 text-white p-6 rounded-lg shadow transition-colors">
+            <div class="flex items-center">
+                <i class="fas fa-clipboard-plus text-2xl mr-4"></i>
+                <div>
+                    <h3 class="text-lg font-semibold">Create Assessment</h3>
+                    <p class="text-purple-100">Set up a new assessment</p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}

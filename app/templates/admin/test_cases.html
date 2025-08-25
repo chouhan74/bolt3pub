@@ -1,0 +1,124 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Test Cases - {{ question.title }}{% endblock %}
+
+{% block admin_content %}
+<div class="px-4 py-6 sm:px-0">
+    <div class="mb-6">
+        <div class="flex items-center">
+            <a href="/admin/questions" class="text-blue-600 hover:text-blue-800 mr-2">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Test Cases</h1>
+                <p class="mt-1 text-sm text-gray-600">{{ question.title }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Test Case Form -->
+    <div class="bg-white shadow sm:rounded-lg mb-6" x-data="{ showForm: false }">
+        <div class="px-4 py-5 sm:p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Manage Test Cases</h3>
+                <button @click="showForm = !showForm" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="fas fa-plus mr-2"></i>
+                    Add Test Case
+                </button>
+            </div>
+
+            <form x-show="showForm" action="/admin/questions/{{ question.id }}/test-cases/add" method="POST" class="space-y-4">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Input Data</label>
+                        <textarea name="input_data" rows="4" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Expected Output</label>
+                        <textarea name="expected_output" rows="4" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"></textarea>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="is_public" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700">Public Test Case</span>
+                        </label>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Weight</label>
+                        <input type="number" name="weight" value="1.0" step="0.1" min="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Time Limit (s)</label>
+                        <input type="number" name="time_limit_seconds" value="5" min="1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Memory Limit (MB)</label>
+                        <input type="number" name="memory_limit_mb" value="128" min="64" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" @click="showForm = false" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                        Add Test Case
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Test Cases List -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-md">
+        {% if test_cases %}
+        <ul class="divide-y divide-gray-200">
+            {% for test_case in test_cases %}
+            <li class="px-6 py-4">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center space-x-2 mb-2">
+                            {% if test_case.is_public %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <i class="fas fa-eye mr-1"></i>
+                                Public
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                <i class="fas fa-eye-slash mr-1"></i>
+                                Hidden
+                            </span>
+                            {% endif %}
+                            <span class="text-sm text-gray-500">
+                                Weight: {{ test_case.weight }} | Time: {{ test_case.time_limit_seconds }}s | Memory: {{ test_case.memory_limit_mb }}MB
+                            </span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-900 mb-1">Input</h4>
+                                <pre class="bg-gray-50 p-3 rounded text-xs font-mono text-gray-800 overflow-x-auto">{{ test_case.input_data }}</pre>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-900 mb-1">Expected Output</h4>
+                                <pre class="bg-gray-50 p-3 rounded text-xs font-mono text-gray-800 overflow-x-auto">{{ test_case.expected_output }}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="text-center py-12">
+            <i class="fas fa-vial text-4xl text-gray-400 mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900">No test cases</h3>
+            <p class="mt-1 text-sm text-gray-500">Add test cases to validate solutions for this coding problem.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

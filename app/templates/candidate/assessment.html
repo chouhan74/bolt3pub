@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}{{ assessment.title }} - Assessment{% endblock %}
+
+{% block extra_head %}
+<style>
+    .assessment-sidebar {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .question-item:hover {
+        transform: translateX(4px);
+        transition: transform 0.2s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Assessment Interface -->
+<div class="min-h-screen bg-gray-50" x-data="assessmentApp()">
+    <!-- Header with timer -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div>
+                    <h1 class="text-lg font-semibold text-gray-900">{{ assessment.title }}</h1>
+                    <p class="text-sm text-gray-500">{{ candidate.name }}</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center bg-red-50 px-3 py-2 rounded-lg">
+                        <i class="fas fa-clock text-red-600 mr-2"></i>
+                        <span x-text="formatTime(timeRemaining)" class="font-mono text-red-600 font-semibold"></span>
+                    </div>
+                    <button @click="submitAssessment()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-check mr-2"></i>
+                        Submit Assessment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-80 assessment-sidebar text-white overflow-y-auto">
+            <div class="p-6">
+                <h2 class="text-xl font-bold mb-6">Questions</h2>
+                
+                <div class="space-y-3">
+                    {% for aq in assessment_questions %}
+                    <div class="question-item bg-white/10 backdrop-blur-sm rounded-lg p-4 cursor-pointer hover:bg-white/20 transition-colors"
+                         onclick="loadQuestion({{ aq.question.id }})">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium">Q{{ loop.index }}</span>
+                            {% set submission = submissions.get(aq.question.id) %}
+                            {% if submission %}
+                                {% if submission.overall_verdict and submission.overall_verdict.value == 'OK' %}
+                                    <i class="fas fa-check-circle text-green-300"></i>
+                                {% elif submission.overall_verdict %}
+                                    <i class="fas fa-exclamation-circle text-yellow-300"></i>
+                                {% else %}
+                                    <i class="fas fa-clock text-blue-300"></i>
+                                {% endif %}
+                            {% else %}
+                                <i class="fas fa-circle text-gray-400"></i>
+                            {% endif %}
+                        </div>
+                        <h3 class="text-sm font-medium mb-1">{{ aq.question.title }}</h3>
+                        <div class="flex items-center justify-between text-xs text-blue-100">
+                            <span>
+                                <i class="fas fa-trophy mr-1"></i>
+                                {{ aq.question.max_score }} pts
+                            </span>
+                            <span>
+                                <i class="fas fa-clock mr-1"></i>
+                                {{ aq.question.time_limit_minutes }} min
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Progress Summary -->
+                <div class="mt-8 bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                    <h3 class="font-semibold mb-3">Progress</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span>Attempted:</span>
+                            <span>{{ submissions|length }}/{{ assessment_questions|length }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Completed:</span>
+                            <span>
+                                {% set completed = submissions.values() | selectattr('overall_verdict') | selectattr('overall_verdict.value', 'equalto', 'OK') | list | length %}
+                                {{ completed }}/{{ assessment_questions|length }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <div class="flex-1 p-6">
+                <div class="bg-white rounded-lg shadow-sm h-full flex items-center justify-center">
+                    <div class="text-center">
+                        <i class="fas fa-arrow-left text-4xl text-gray-400 mb-4"></i>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Select a Question</h3>
+                        <p class="text-gray-500">Choose a question from the sidebar to start solving</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function assessmentApp() {
+    return {
+        timeRemaining: {{ assessment.total_time_minutes }} * 60, // in seconds
+        
+        init() {
+            this.startTimer();
+            this.setupProctoring();
+        },
+        
+        startTimer() {
+            setInterval(() => {
+                this.timeRemaining--;
+                if (this.timeRemaining <= 0) {
+                    this.submitAssessment();
+                }
+            }, 1000);
+        },
+        
+        formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            if (hours > 0) {
+                return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            } else {
+                return `${minutes}:${secs.toString().padStart(2, '0')}`;
+            }
+        },
+        
+        setupProctoring() {
+            // Tab switch detection
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    this.logProctoringEvent('tab_switch', { hidden: true });
+                }
+            });
+            
+            // Copy-paste detection
+            document.addEventListener('copy', () => {
+                this.logProctoringEvent('copy_paste', { action: 'copy' });
+            });
+            
+            document.addEventListener('paste', () => {
+                this.logProctoringEvent('copy_paste', { action: 'paste' });
+            });
+            
+            // Window resize
+            window.addEventListener('resize', () => {
+                this.logProctoringEvent('window_resize', { 
+                    width: window.innerWidth, 
+                    height: window.innerHeight 
+                });
+            });
+        },
+        
+        async logProctoringEvent(eventType, eventData) {
+            try {
+                await fetch('/api/proctoring-event', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        event_type: eventType,
+                        event_data: eventData
+                    })
+                });
+            } catch (error) {
+                console.error('Failed to log proctoring event:', error);
+            }
+        },
+        
+        async submitAssessment() {
+            if (confirm('Are you sure you want to submit your assessment? This cannot be undone.')) {
+                // TODO: Implement assessment submission
+                alert('Assessment submitted successfully!');
+                window.location.href = '/candidate/results';
+            }
+        }
+    }
+}
+
+function loadQuestion(questionId) {
+    window.location.href = `/candidate/question/${questionId}`;
+}
+</script>
+{% endblock %}
