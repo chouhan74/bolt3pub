@@ -368,7 +368,13 @@ function questionApp() {
             if (isSubmission) {
                 output += `<div class="text-green-400 mb-2">✅ Submission Complete!</div>`;
                 output += `<div class="text-white mb-2">Overall Verdict: <span class="font-bold ${this.getVerdictColor(status.overall_verdict)}">${status.overall_verdict}</span></div>`;
-                output += `<div class="text-white mb-4">Score: ${status.total_score}/${{}}/{{ question.max_score }}</div>`;
+                output += `
+                  <div class="text-white mb-4">
+                    Score: ${status?.total_score ?? 0}/${question?.max_score ?? 0}
+                  </div>
+                `;
+
+                // output += `<div class="text-white mb-4">Score: ${status.total_score}/${{}}/{{ question.max_score }}</div>`;
             } else {
                 output += `<div class="text-blue-400 mb-2">🔍 Test Results (Public Test Cases Only):</div>`;
             }
