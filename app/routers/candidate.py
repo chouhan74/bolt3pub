@@ -157,16 +157,16 @@ templates = Jinja2Templates(directory="app/templates")
 
 
 def get_current_candidate_from_cookie(
-    assessment_candidate_id: Optional[str] = Cookie(None),
+    candidate_cookie_id: Optional[str] = Cookie(None, alias="assessment_candidate_id"),
     candidate_session: Optional[str] = Cookie(None),
     db: Session = Depends(get_db)
 ):
     """Get candidate from cookie authentication"""
-    if not assessment_candidate_id or not candidate_session:
+    if not candidate_cookie_id or not candidate_session:
         raise HTTPException(status_code=401, detail="Not authenticated")
     
     try:
-        candidate_id = int(assessment_candidate_id)
+        candidate_id = int(candidate_cookie_id)
         assessment_candidate = db.query(AssessmentCandidate).filter(
             AssessmentCandidate.id == candidate_id
         ).first()
@@ -177,11 +177,10 @@ def get_current_candidate_from_cookie(
         return assessment_candidate
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid candidate ID")
-
-
 def get_candidate_by_id(
     candidate_id: int,
     db: Session = Depends(get_db)
+
 ):
     """Get candidate by ID from database"""
     assessment_candidate = db.query(AssessmentCandidate).filter(
