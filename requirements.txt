@@ -16,3 +16,4 @@ google-auth
 aiofiles
 python-dotenv
 pydantic-settings
+gunicorn
