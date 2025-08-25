@@ -17,3 +17,4 @@ aiofiles
 python-dotenv
 pydantic-settings
 gunicorn
+bcrypt==4.0.1
