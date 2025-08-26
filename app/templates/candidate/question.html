@@ -204,7 +204,7 @@ function questionApp() {
             
             require(['vs/editor/editor.main'], () => {
                 this.editor = monaco.editor.create(document.getElementById('editor'), {
-                    value: `{{ latest_submission.code if latest_submission else question.template_code or '' }}`.replace(/&quot;/g, '"').replace(/&#x27;/g, "'"),
+                    value: {{ (latest_submission.code if latest_submission else question.template_code or '') | tojson }},
                     language: this.getMonacoLanguage(this.selectedLanguage),
                     theme: 'vs-light',
                     automaticLayout: true,
